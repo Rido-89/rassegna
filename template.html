@@ -16,12 +16,16 @@ h1{font:600 2rem/1.15 "Iowan Old Style",Georgia,serif;margin:0 0 4px}
 h2{font:600 1.2rem/1.2 "Iowan Old Style",Georgia,serif;margin:0 0 8px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
 section{margin-bottom:40px}
 ul{list-style:none;margin:0;padding:0}
-li{display:grid;grid-template-columns:4.5rem 1fr;gap:2px 12px;padding:10px 0;border-bottom:1px solid var(--line)}
-time{color:var(--mute);font-size:.85rem;padding-top:2px;font-variant-numeric:tabular-nums}
-a{color:var(--ink);text-decoration:none;font-weight:500}
-a:hover{color:var(--acc);text-decoration:underline}
-a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-.src{grid-column:2;color:var(--mute);font-size:.82rem}
+li{border-bottom:1px solid var(--line)}
+.card{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;padding:14px 0;color:var(--ink);text-decoration:none}
+.card:hover .title{color:var(--acc);text-decoration:underline}
+.card:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.body{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
+.meta{display:flex;gap:10px;align-items:baseline;font-size:.82rem;color:var(--mute)}
+.meta b{color:var(--acc);font-weight:600}
+.title{font:500 1.05rem/1.35 "Iowan Old Style",Georgia,serif}
+.thumb{flex:none;width:112px;height:76px;border-radius:6px;overflow:hidden;background:var(--line)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .vuoto{display:block;color:var(--mute)}
 </style>
 </head>
