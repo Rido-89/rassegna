@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="900">
+<title>Napoli e area vesuviana</title>
+<style>
+:root{--bg:#eef1f4;--ink:#14202b;--mute:#5b6b7a;--line:#cfd7de;--acc:#1f5fbf}
+@media(prefers-color-scheme:dark){:root{--bg:#10161c;--ink:#e6ebf0;--mute:#93a3b3;--line:#27323d;--acc:#7fb0ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,sans-serif}
+main{max-width:720px;margin:0 auto;padding:40px 20px 72px}
+h1{font:600 2rem/1.15 "Iowan Old Style",Georgia,serif;margin:0 0 4px}
+.agg{color:var(--mute);font-size:.9rem;margin:0 0 36px}
+h2{font:600 1.2rem/1.2 "Iowan Old Style",Georgia,serif;margin:0 0 8px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
+section{margin-bottom:40px}
+ul{list-style:none;margin:0;padding:0}
+li{display:grid;grid-template-columns:4.5rem 1fr;gap:2px 12px;padding:10px 0;border-bottom:1px solid var(--line)}
+time{color:var(--mute);font-size:.85rem;padding-top:2px;font-variant-numeric:tabular-nums}
+a{color:var(--ink);text-decoration:none;font-weight:500}
+a:hover{color:var(--acc);text-decoration:underline}
+a:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.src{grid-column:2;color:var(--mute);font-size:.82rem}
+.vuoto{display:block;color:var(--mute)}
+</style>
+</head>
+<body>
+<main>
+<h1>Napoli e area vesuviana</h1>
+<p class="agg">Aggiornata il %%UPDATED%%. Si rigenera ogni ora.</p>
+%%BODY%%
+</main>
+<script>
+function fmt(d){var m=Math.round((Date.now()-d)/60000);
+if(m<1)return"ora";if(m<60)return m+" min fa";
+var h=Math.floor(m/60);if(h<24)return h+(h===1?" ora fa":" ore fa");
+var g=Math.floor(h/24);return g===1?"ieri":g+" giorni fa"}
+function tick(){document.querySelectorAll("time").forEach(function(t){t.textContent=fmt(new Date(t.dateTime))})}
+tick();setInterval(tick,60000);
+</script>
+</body>
+</html>
