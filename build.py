@@ -144,15 +144,20 @@ def render(i, ref):
             f'<time datetime="{i["date"].isoformat()}"></time></span>'
             f'<span class="title">{html.escape(i["title"])}</span></span>{thumb}</a>{cov}</li>')
 
+def slug(name):
+    return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
+
 def main():
     cfg = json.load(open("feeds.json", encoding="utf-8"))
-    match = make_matcher(cfg.get("keywords", []))
-    excluded = make_matcher(cfg.get("exclude", []))
+    secs = cfg["sections"]
+    for sec in secs:
+        sec["_match"] = make_matcher(sec.get("keywords", []))
+        sec["_excl"] = make_matcher(sec.get("exclude", []))
+    by_priority = sorted(secs, key=lambda x: x.get("priority", 99))
     now = datetime.now(timezone.utc)
     limit = now - timedelta(hours=cfg.get("max_age_hours", 72))
-    ref = None
+    ref, note = None, ""
     rc = cfg.get("reference")
-    note = ""
     if rc:
         rlimit = now - timedelta(days=rc.get("days", 7))
         ritems = [i for i in fetch({"name": rc["name"], "url": rc["url"]}) if i["date"] >= rlimit]
@@ -160,34 +165,44 @@ def main():
             ref = {"name": rc["name"], "items": ritems, "host": host(rc["url"])}
         else:
             note = f" Confronto con {html.escape(rc['name'])} non disponibile in questo aggiornamento."
-    sections = []
-    for cat in cfg["categories"]:
-        feeds = cat["feeds"]
-        with ThreadPoolExecutor(8) as ex:
-            lists = list(ex.map(fetch, feeds))
-        items, seen = [], set()
-        for feed, lst in zip(feeds, lists):
-            for i in lst:
-                if not (limit <= i["date"] <= now + timedelta(hours=1)):
-                    continue
-                if feed.get("filter") and not match(i["text"]):
-                    continue
-                if excluded(i["text"]) or i["link"] in seen:
-                    continue
+    feeds = cfg["feeds"]
+    with ThreadPoolExecutor(8) as ex:
+        lists = list(ex.map(fetch, feeds))
+    buckets = {sec["name"]: [] for sec in secs}
+    seen = set()
+    for feed, lst in zip(feeds, lists):
+        only = make_matcher(feed["only"]) if feed.get("only") else None
+        for i in lst:
+            if i["link"] in seen or not (limit <= i["date"] <= now + timedelta(hours=1)):
+                continue
+            if only:
+                name = feed.get("default") if only(i["text"]) else None
+            else:
+                name = next((x["name"] for x in by_priority
+                             if x["_match"](i["text"]) and not x["_excl"](i["text"])), None) or feed.get("default")
+            if name in buckets:
                 seen.add(i["link"])
-                items.append(i)
-        items.sort(key=lambda i: i["date"], reverse=True)
-        items = items[:cfg.get("per_category", 20)]
-        missing = [i for i in items if not i["image"]]
-        with ThreadPoolExecutor(10) as ex:
-            for i, img in zip(missing, ex.map(lambda x: og_image(x["link"]), missing)):
-                i["image"] = img
-        rows = "".join(render(i, ref) for i in items) \
+                buckets[name].append(i)
+    limit_n = cfg.get("per_section", 15)
+    for name in buckets:
+        buckets[name].sort(key=lambda i: i["date"], reverse=True)
+        buckets[name] = buckets[name][:limit_n]
+    missing = [i for lst in buckets.values() for i in lst if not i["image"]]
+    with ThreadPoolExecutor(10) as ex:
+        for i, img in zip(missing, ex.map(lambda x: og_image(x["link"]), missing)):
+            i["image"] = img
+    sections, nav = [], []
+    for sec in secs:
+        items = buckets[sec["name"]]
+        rows = "".join(render(i, ref if sec.get("compare") else None) for i in items) \
             or '<li class="vuoto">Nessuna notizia recente.</li>'
-        sections.append(f'<section><h2>{html.escape(cat["name"])}</h2><ul>{rows}</ul></section>')
+        sid = slug(sec["name"])
+        nav.append(f'<a href="#{sid}">{html.escape(sec["name"])}</a>')
+        sections.append(f'<section id="{sid}"><h2>{html.escape(sec["name"])}</h2><ul>{rows}</ul></section>')
     stamp = datetime.now(ZoneInfo("Europe/Rome")).strftime("%d/%m/%Y alle %H:%M")
     page = open("template.html", encoding="utf-8").read()
-    page = page.replace("%%BODY%%", "\n".join(sections)).replace("%%UPDATED%%", stamp + "." + note if note else stamp)
+    page = (page.replace("%%NAV%%", "".join(nav)).replace("%%BODY%%", "\n".join(sections))
+            .replace("%%UPDATED%%", stamp + "." + note if note else stamp))
     os.makedirs("public", exist_ok=True)
     open("public/index.html", "w", encoding="utf-8").write(page)
 

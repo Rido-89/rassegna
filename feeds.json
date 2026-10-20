@@ -1,94 +1,36 @@
 {
-  "per_category": 20,
+  "per_section": 15,
   "max_age_hours": 72,
-  "keywords": [
-    "napoli",
-    "napolet",
-    "vesuv",
-    "pompei",
-    "ercolano",
-    "torre del greco",
-    "torre annunziata",
-    "portici",
-    "san giorgio a cremano",
-    "ottaviano",
-    "san giuseppe vesuviano",
-    "somma vesuviana",
-    "sant'anastasia",
-    "pollena",
-    "cercola",
-    "boscoreale",
-    "boscotrecase",
-    "trecase",
-    "terzigno",
-    "massa di somma",
-    "san sebastiano al vesuvio",
-    "castellammare di stabia",
-    "scafati"
+  "reference": {"name": "Il Gazzettino Vesuviano", "url": "https://www.ilgazzettinovesuviano.com/feed/", "days": 7},
+  "sections": [
+    {"name": "Napoli", "priority": 4, "compare": true,
+     "keywords": ["napoli", "napolet"], "exclude": []},
+    {"name": "Area vesuviana", "priority": 3, "compare": true,
+     "keywords": ["vesuv", "pompei", "ercolano", "torre del greco", "torre annunziata", "portici",
+                  "san giorgio a cremano", "ottaviano", "san giuseppe vesuviano", "somma vesuviana",
+                  "sant'anastasia", "pollena", "cercola", "boscoreale", "boscotrecase", "trecase",
+                  "terzigno", "massa di somma", "san sebastiano al vesuvio",
+                  "castellammare di stabia", "scafati"], "exclude": []},
+    {"name": "Napoli Basket", "priority": 1,
+     "keywords": ["napoli basket", "gevi", "napolibasket", "basket napoli"], "exclude": []},
+    {"name": "Benevento", "priority": 2,
+     "keywords": ["benevento", "beneventan", "sannio", "sannit"], "exclude": []}
   ],
-  "exclude": [],
-  "categories": [
-    {
-      "name": "Dalle testate locali",
-      "feeds": [
-        {
-          "name": "NapoliToday",
-          "url": "https://www.napolitoday.it/rss"
-        },
-        {
-          "name": "Vesuvio Live",
-          "url": "https://www.vesuviolive.it/feed/"
-        },
-        {
-          "name": "ANSA Campania",
-          "url": "https://www.ansa.it/campania/notizie/campania_rss.xml",
-          "filter": true
-        }
-      ]
-    },
-    {
-      "name": "Dai giornali e dalle testate nazionali",
-      "feeds": [
-        {
-          "name": "Fanpage",
-          "url": "https://www.fanpage.it/napoli/feed/"
-        },
-        {
-          "name": "Fanpage",
-          "url": "https://www.fanpage.it/feed/",
-          "filter": true
-        },
-        {
-          "name": "Il Post",
-          "url": "https://www.ilpost.it/feed/",
-          "filter": true
-        },
-        {
-          "name": "Repubblica",
-          "url": "https://www.repubblica.it/rss/homepage/rss2.0.xml",
-          "filter": true
-        },
-        {
-          "name": "Corriere",
-          "url": "https://xml2.corriereobjects.it/rss/homepage.xml",
-          "filter": true
-        },
-        {
-          "name": "Il Fatto Quotidiano",
-          "url": "https://www.ilfattoquotidiano.it/feed/",
-          "filter": true
-        },
-        {
-          "name": "ANSA",
-          "url": "https://www.ansa.it/sito/ansait_rss.xml",
-          "filter": true
-        }
-      ]
-    }
-  ],
-  "reference": {
-    "name": "Il Gazzettino Vesuviano",
-    "url": "https://www.ilgazzettinovesuviano.com/feed/",
-    "days": 7
-  }
+  "feeds": [
+    {"name": "NapoliToday", "url": "https://www.napolitoday.it/rss", "default": "Napoli"},
+    {"name": "Fanpage", "url": "https://www.fanpage.it/napoli/feed/", "default": "Napoli"},
+    {"name": "Vesuvio Live", "url": "https://www.vesuviolive.it/feed/", "default": "Area vesuviana"},
+    {"name": "ANSA Campania", "url": "https://www.ansa.it/campania/notizie/campania_rss.xml"},
+    {"name": "Fanpage", "url": "https://www.fanpage.it/feed/"},
+    {"name": "Il Post", "url": "https://www.ilpost.it/feed/"},
+    {"name": "Repubblica", "url": "https://www.repubblica.it/rss/homepage/rss2.0.xml"},
+    {"name": "Corriere", "url": "https://xml2.corriereobjects.it/rss/homepage.xml"},
+    {"name": "Il Fatto Quotidiano", "url": "https://www.ilfattoquotidiano.it/feed/"},
+    {"name": "ANSA", "url": "https://www.ansa.it/sito/ansait_rss.xml"},
+    {"name": "Il Sannio Quotidiano", "url": "https://www.ilsannioquotidiano.it/feed/", "default": "Benevento"},
+    {"name": "Il Quaderno", "url": "https://www.ilquaderno.it/feed/", "default": "Benevento"},
+    {"name": "Anteprima24", "url": "https://www.anteprima24.it/feed/"},
+    {"name": "Basketnet", "url": "https://www.basketnet.it/feed/", "only": ["napoli"], "default": "Napoli Basket"},
+    {"name": "Superbasket", "url": "https://www.superbasket.it/feed/", "only": ["napoli"], "default": "Napoli Basket"}
+  ]
 }
