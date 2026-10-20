@@ -1,4 +1,5 @@
 import json, html, re, os, sys, urllib.request
+from urllib.parse import urljoin, urlparse
 from datetime import datetime, timezone, timedelta
 from email.utils import parsedate_to_datetime
 from xml.etree import ElementTree as ET
@@ -78,20 +79,70 @@ def fetch(feed):
                         "image": find_image(el, html_all), "text": clean(title + " " + desc)})
     return out
 
+
+OG = re.compile(r"<meta[^>]+(?:property|name)=[\"'](?:og:image|twitter:image)[\"'][^>]*>", re.I)
+CONTENT_ATTR = re.compile(r"content=[\"']([^\"']+)[\"']", re.I)
+STOP = set("""della delle dello degli dalla dalle nella nelle negli nello sono stato stata dopo anni anno come dove
+quando perche perché tutti tutto questo questa nuovo nuova ecco oggi ieri sulla sulle sugli dagli alla alle allo agli
+anche contro verso senza sotto sopra tra fra napoli napoletano napoletana napoletani vesuvio vesuviano vesuviana
+campania italia italiano video foto news ultime ultima ultimo dalla nell sull dell""".split())
+
+def og_image(url):
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (compatible; rassegna-bot)"})
+        data = urllib.request.urlopen(req, timeout=8).read(250000).decode("utf-8", "ignore")
+    except Exception:
+        return ""
+    for m in OG.finditer(data):
+        c = CONTENT_ATTR.search(m.group(0))
+        if c:
+            return good_url(urljoin(url, html.unescape(c.group(1))))
+    return ""
+
+def host(url):
+    h = urlparse(url).netloc.lower()
+    return h[4:] if h.startswith("www.") else h
+
+def tokens(title):
+    return {w[:6] for w in re.findall(r"[a-zàèéìòù]{4,}", title.lower()) if w not in STOP}
+
+def find_coverage(item, ref_items):
+    a = tokens(item["title"])
+    best, best_score = None, 0
+    for r in ref_items:
+        b = tokens(r["title"])
+        shared = len(a & b)
+        if shared >= 3 and min(len(a), len(b)) and shared / min(len(a), len(b)) >= 0.45:
+            score = shared / min(len(a), len(b))
+            if score > best_score:
+                best, best_score = r, score
+    return best
+
 def make_matcher(words):
     if not words:
         return lambda t: False
     return re.compile(r"\b(?:" + "|".join(re.escape(w) for w in words) + ")", re.I).search
 
-def render(i):
+def render(i, ref):
     thumb = ""
     if i["image"]:
         thumb = (f'<span class="thumb"><img src="{html.escape(i["image"], quote=True)}" alt="" '
                  f'loading="lazy" referrerpolicy="no-referrer" onerror="this.parentNode.remove()"></span>')
+    h = host(i["link"])
+    logo = (f'<img class="logo" src="https://www.google.com/s2/favicons?domain={html.escape(h)}&sz=64" alt="" '
+            f'width="18" height="18" loading="lazy" onerror="this.remove()">') if h else ""
+    cov = ""
+    if ref is not None and host(i["link"]) != ref["host"]:
+        m = find_coverage(i, ref["items"])
+        if m:
+            cov = (f'<div class="cov yes"><a href="{html.escape(m["link"], quote=True)}" rel="noopener">'
+                   f'Già coperta da {html.escape(ref["name"])}: {html.escape(m["title"])}</a></div>')
+        else:
+            cov = f'<div class="cov no">Non ancora su {html.escape(ref["name"])}</div>'
     return (f'<li><a class="card" href="{html.escape(i["link"], quote=True)}" rel="noopener">'
-            f'<span class="body"><span class="meta"><b>{html.escape(i["source"])}</b>'
+            f'<span class="body"><span class="meta">{logo}<b>{html.escape(i["source"])}</b>'
             f'<time datetime="{i["date"].isoformat()}"></time></span>'
-            f'<span class="title">{html.escape(i["title"])}</span></span>{thumb}</a></li>')
+            f'<span class="title">{html.escape(i["title"])}</span></span>{thumb}</a>{cov}</li>')
 
 def main():
     cfg = json.load(open("feeds.json", encoding="utf-8"))
@@ -99,6 +150,16 @@ def main():
     excluded = make_matcher(cfg.get("exclude", []))
     now = datetime.now(timezone.utc)
     limit = now - timedelta(hours=cfg.get("max_age_hours", 72))
+    ref = None
+    rc = cfg.get("reference")
+    note = ""
+    if rc:
+        rlimit = now - timedelta(days=rc.get("days", 7))
+        ritems = [i for i in fetch({"name": rc["name"], "url": rc["url"]}) if i["date"] >= rlimit]
+        if ritems:
+            ref = {"name": rc["name"], "items": ritems, "host": host(rc["url"])}
+        else:
+            note = f" Confronto con {html.escape(rc['name'])} non disponibile in questo aggiornamento."
     sections = []
     for cat in cfg["categories"]:
         feeds = cat["feeds"]
@@ -116,12 +177,17 @@ def main():
                 seen.add(i["link"])
                 items.append(i)
         items.sort(key=lambda i: i["date"], reverse=True)
-        rows = "".join(render(i) for i in items[:cfg.get("per_category", 20)]) \
+        items = items[:cfg.get("per_category", 20)]
+        missing = [i for i in items if not i["image"]]
+        with ThreadPoolExecutor(10) as ex:
+            for i, img in zip(missing, ex.map(lambda x: og_image(x["link"]), missing)):
+                i["image"] = img
+        rows = "".join(render(i, ref) for i in items) \
             or '<li class="vuoto">Nessuna notizia recente.</li>'
         sections.append(f'<section><h2>{html.escape(cat["name"])}</h2><ul>{rows}</ul></section>')
     stamp = datetime.now(ZoneInfo("Europe/Rome")).strftime("%d/%m/%Y alle %H:%M")
     page = open("template.html", encoding="utf-8").read()
-    page = page.replace("%%BODY%%", "\n".join(sections)).replace("%%UPDATED%%", stamp)
+    page = page.replace("%%BODY%%", "\n".join(sections)).replace("%%UPDATED%%", stamp + "." + note if note else stamp)
     os.makedirs("public", exist_ok=True)
     open("public/index.html", "w", encoding="utf-8").write(page)
 

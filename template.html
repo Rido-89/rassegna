@@ -6,8 +6,8 @@
 <meta http-equiv="refresh" content="900">
 <title>Napoli e area vesuviana</title>
 <style>
-:root{--bg:#eef1f4;--ink:#14202b;--mute:#5b6b7a;--line:#cfd7de;--acc:#1f5fbf}
-@media(prefers-color-scheme:dark){:root{--bg:#10161c;--ink:#e6ebf0;--mute:#93a3b3;--line:#27323d;--acc:#7fb0ff}}
+:root{--bg:#eef1f4;--ink:#14202b;--mute:#5b6b7a;--line:#cfd7de;--acc:#1f5fbf;--ok:#1b7f4b}
+@media(prefers-color-scheme:dark){:root{--bg:#10161c;--ink:#e6ebf0;--mute:#93a3b3;--line:#27323d;--acc:#7fb0ff;--ok:#5fd08f}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,sans-serif}
 main{max-width:720px;margin:0 auto;padding:40px 20px 72px}
@@ -16,13 +16,17 @@ h1{font:600 2rem/1.15 "Iowan Old Style",Georgia,serif;margin:0 0 4px}
 h2{font:600 1.2rem/1.2 "Iowan Old Style",Georgia,serif;margin:0 0 8px;padding-bottom:8px;border-bottom:2px solid var(--ink)}
 section{margin-bottom:40px}
 ul{list-style:none;margin:0;padding:0}
-li{border-bottom:1px solid var(--line)}
-.card{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;padding:14px 0;color:var(--ink);text-decoration:none}
+li{border-bottom:1px solid var(--line);padding-bottom:12px}
+.card{display:flex;gap:14px;align-items:flex-start;justify-content:space-between;padding:14px 0 8px;color:var(--ink);text-decoration:none}
 .card:hover .title{color:var(--acc);text-decoration:underline}
 .card:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .body{display:flex;flex-direction:column;gap:4px;min-width:0;flex:1}
 .meta{display:flex;gap:10px;align-items:baseline;font-size:.82rem;color:var(--mute)}
 .meta b{color:var(--acc);font-weight:600}
+.logo{width:18px;height:18px;border-radius:3px;align-self:center}
+.cov{font-size:.82rem;margin-top:2px}
+.cov.yes a{color:var(--ok);font-weight:500}
+.cov.no{color:var(--mute)}
 .title{font:500 1.05rem/1.35 "Iowan Old Style",Georgia,serif}
 .thumb{flex:none;width:112px;height:76px;border-radius:6px;overflow:hidden;background:var(--line)}
 .thumb img{width:100%;height:100%;object-fit:cover;display:block}
@@ -32,7 +36,7 @@ li{border-bottom:1px solid var(--line)}
 <body>
 <main>
 <h1>Napoli e area vesuviana</h1>
-<p class="agg">Aggiornata il %%UPDATED%%. Si rigenera ogni ora.</p>
+<p class="agg">Aggiornata il %%UPDATED%%. Si rigenera ogni ora. L'icona accanto alla testata è quella del sito.</p>
 %%BODY%%
 </main>
 <script>
